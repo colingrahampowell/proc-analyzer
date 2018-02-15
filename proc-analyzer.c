@@ -22,25 +22,62 @@ typedef struct {
     int pid;
 } pinfo;
 
+/* USER INPUT */
+
+void print_main_menu();
+char get_user_choice(char *choices);
+
+/* PROCESS FUNCTIONS */
+
+int list_processes();
+int get_proc_info( char *path, pinfo *pi);
+
+/* HELPERS */
+
 char *get_field_val(char *line);
 char* trim(char *st);
-int get_proc_info( char *path, pinfo *pi);
 int is_number(char *st);
 
 int main(int argc, char **argv) {
 
-    printf("Listing all PIDs...\n");
+    char user_choice;
+    char choices[] = "12345q";
+    int quit = FALSE;
 
+    while(!quit) {
+
+        print_main_menu();
+        user_choice = get_user_choice(choices);
+
+        switch (user_choice){
+            case '1':   list_processes();
+                        break;
+            default:    quit = TRUE; 
+        }
+    }
+}
+
+/*
+ * list_processes(): enumerates all processes.
+ * -- returns TRUE if no read errors occured, FALSE otherwise.
+ */
+
+int list_processes() {
+
+    int success = FALSE;
     pinfo pi;
 
     struct dirent *entry = NULL;
     struct stat dir_stat;
 
     char temp[1024];
-    char name[8] = {'\0'};
-    strcpy(name, "/proc");
+    const char name[] = "/proc";
     
     DIR *dptr = opendir(name);
+    if(dptr == NULL) {
+        fprintf(stderr, "ERROR: could not open %s directory", name);
+        return FALSE;
+    }
 
     printf("----PROCESSES----\n");
     printf("%-8s%-32s%-64s\n", "PID", "NAME", "CMDLINE");
@@ -55,7 +92,7 @@ int main(int argc, char **argv) {
             snprintf(temp, sizeof(temp), "%s/%s", name, entry->d_name);
 
             pi.pid = atoi(entry->d_name);
-            get_proc_info(temp, &pi);
+            success = get_proc_info(temp, &pi);
             printf("%-8d%-32s%-64s\n", pi.pid, pi.name, pi.cmdline);
         } 
     } 
@@ -63,7 +100,37 @@ int main(int argc, char **argv) {
     closedir(dptr);
     dptr = NULL;
 
-    return 0;
+    return success;
+
+}
+
+int list_threads(int pid) {
+
+    int success = FALSE;
+    
+    struct dirent *entry = NULL;
+    struct stat dir_stat;
+
+    char path[1024] = {'\0'};
+    sprintf(path, "/proc/%d/tasks", pid);
+
+    DIR *dptr = opendir(path);
+    if(dptr == NULL) {
+        fprintf(stderr, "ERROR: could not open %s directory", path);
+        return FALSE;
+    }
+
+    printf("----THREADS FOR PID: %d----\n", pid);
+//    printf("%-8s%-32s%-64s\n", "TID", "NAME", "CMDLINE");
+    while((entry = readdir(dptr)) != NULL) {
+        stat(entry->d_name, &dir_stat);
+
+        if(is_number(entry->d_name) && S_ISDIR(dir_stat.st_mode)) {
+            // will be almost identical to process listing 
+        }
+    }
+
+    return success;
 }
 
 
@@ -176,3 +243,54 @@ int is_number(char *st) {
 
 }
 
+/*
+ * prints the program's main menu, incl. a list of user choices
+ */
+
+void print_main_menu() {
+
+    printf("*****WELCOME TO PROCESS ANALYZER*****\n");
+    printf("\nMAIN MENU:\n");
+    printf("[1]: Enumerate all processes\n");
+    printf("[2]: Enumerate all threads for a process\n");
+    printf("[3]: Enumerate all shared libraries loaded for a process\n");
+    printf("[4]: Show all executable pages for a process\n");
+    printf("[5]: Read through memory\n");
+
+    printf("\nTo QUIT, enter \'q\'\n\n");
+}
+
+/*
+ * get_user_input(): gets a character from user, returns it. 
+ * -- parameters: choices, a string containing all valid character choices
+ * NOTE: getline() usage follows Linux man pages, man7.org/linux/man-pages/man-3/getline.3.hmtl
+ */
+
+char get_user_choice(char *choices) {
+
+    char user_choice;
+
+    char *input = NULL;
+    size_t len = 0;
+    ssize_t nread; 
+    int good_input = FALSE;
+
+    while(!good_input) {
+        printf("Enter your choice: ");
+        nread = getline(&input, &len, stdin);
+
+        // if char + newline was read, and char matches valid choice
+        if(nread == 2 && strchr(choices, *input )) {
+            good_input = TRUE;
+        }
+        else {
+            printf("Invalid choice. Try again.\n");
+        }
+    } 
+
+    user_choice = *input;
+    free(input);
+
+    return user_choice; 
+
+}
