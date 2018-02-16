@@ -10,7 +10,8 @@ CCFLAGS = -Wall
 
 
 SRC1 = proc-analyzer.c
-SRCS = ${SRC1}
+SRC2 = helpers.c
+SRCS = ${SRC1} ${SRC2}
 
 PROG1 = proc-analyzer
 PROGS = ${PROG1}
