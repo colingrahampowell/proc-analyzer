@@ -5,6 +5,7 @@
  * Helper functions
  */
 
+#include "helpers.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,6 +64,47 @@ int is_number(char *st) {
     }
 
     return TRUE;
+}
+
+/*
+ * is_hex(): returns TRUE if str points to a series of hex chars, FALSE otherwise
+ */
+
+int is_hex(char *st) {
+
+    int len = strlen(st);
+    int i = 0;
+    char t;
+    
+    for( i = 0; i < len; i++) {
+        t = toupper(st[i]);
+        // if not a digit, and not an upper-case hex char:
+        if((t < '0' || t > '9') && (t < 'A' || t > 'F')) {
+           return FALSE; 
+        }
+    }
+
+    return TRUE;
+}
+
+/*
+ * read_bit(): reads the value of a specific bit, returns it
+ * adapted from: stackoverflow.com/questions/
+ *               2249731/how-do-i-get-bit-by-bit-data-from-an-integer-value-in-c
+ */
+
+int read_bit(unsigned long long tgt, int bnum) {
+
+    // apply an AND mask to the target:
+    //  - shift left bnum times to mask off bnum-th bit
+    // then, shift right bnum times to get the bit-value we want
+
+    // ex:      1100 1001 <-- we want bit 6
+    // MASK:    0100 0000
+    // RES:     0100 0000
+    // SHR:     0000 0001
+
+    return (tgt & ( 1 << bnum )) >> bnum;
 
 }
 
