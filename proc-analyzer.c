@@ -156,7 +156,7 @@ int list_processes() {
         return FALSE;
     }
 
-    printf("----PROCESSES----\n");
+    printf("\n----PROCESSES----\n");
     printf("%-8s%-32s%-64s\n", "PID", "NAME", "CMDLINE");
     
     while((entry = readdir(dptr)) != NULL) {
@@ -205,7 +205,7 @@ int list_threads(int pid) {
         return FALSE;
     }
 
-    printf("----THREADS FOR PID: %d----\n", pid);
+    printf("\n----THREADS FOR PID: %d----\n", pid);
     printf("%-8s%-8s%-64s\n", "TID", "TGID", "NAME");
     while((entry = readdir(dptr)) != NULL) {
         stat(entry->d_name, &dir_stat);
@@ -299,7 +299,7 @@ void list_shared_objects(int pid) {
         }
     }
 
-    printf("----SHARED OBJECTS----\n");
+    printf("\n----SHARED OBJECTS----\n");
     for(k = 0; k < n_shared; k++) {
         printf("%s\n", sh_objs[k]);
     }
@@ -361,7 +361,7 @@ int list_executable_pages(int pid) {
     
     int fnum = fileno(fp);
             
-    printf("%-24s%-16s%-16s%-64s\n", "VIRT. ADDRESS", "PAGEFRAME NO.", "EXCL. MAPPED", "PATH");
+    printf("\n%-24s%-16s%-16s%-64s\n", "VIRT. ADDRESS", "PAGEFRAME NO.", "EXCL. MAPPED", "PATH");
 
     for(i = 0; i < n_maps; i++) {
    
@@ -384,9 +384,9 @@ int list_executable_pages(int pid) {
                 }
     
                 // if present (bit 63 set)
-                if(read_bit(pmap_entry, 63)) {
+               if(read_bit(pmap_entry, 63)) {
                     print_pageinfo(addr, pmap_entry, maps[i].path);
-                }
+               }
             
                 // add 64 bits to index
                 idx += sizeof(unsigned long long);
@@ -619,7 +619,7 @@ void print_main_menu() {
     printf("[1]: Enumerate all processes\n");
     printf("[2]: Enumerate all threads for a process\n");
     printf("[3]: Enumerate all shared objects (libraries) loaded for a process\n");
-    printf("[4]: Show information for all executable pages for a process\n");
+    printf("[4]: Show information for all executable pages of a process\n");
     printf("[5]: Read through memory of a process\n");
     printf("\nTo QUIT, enter \'q\'\n\n");
 }
