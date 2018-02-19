@@ -52,12 +52,6 @@ typedef struct {
     char path[MAX_NAME];
 } map_reg;
 
-typedef struct {
-
-    
-
-
-} page_info;
 
 /* USER INPUT */
 
@@ -226,7 +220,6 @@ int list_threads(int pid) {
  * read_mapped_regions(): retrive information on all mapped virtual memory regions
  * in the process passed as an argument. 
  * Returns number of mapped regions read from /proc/pid/maps
- * NOTE: use of sscanf function to read hex memory values adapted from 
  */
 
 int read_mapped_regions(int pid, map_reg *map) {
@@ -250,12 +243,6 @@ int read_mapped_regions(int pid, map_reg *map) {
         sscanf(line, "%lX-%lX %s %*s %*s %*d %s", &map[i].vm_start, &map[i].vm_end, map[i].perms, map[i].path);
         i++;
     }
-/*
-    printf("----ALL MAPPED REGIONS----\n");
-    for(k = 0; k < i; k++) {
-        printf("%lX -- %lX %s\n", map[k].vm_start, map[k].vm_end, map[k].path);
-    }
-*/
     free(line);
     fclose(fp);
     return i;
@@ -461,8 +448,6 @@ int read_memory(int pid, unsigned long long start_addr) {
         }
         printf("\n");
 
-  //      printf("nread: %ld\n", nread);
-
         // update starting address for next read
         start_addr += nread;
         line_addr = start_addr;
@@ -667,6 +652,7 @@ char get_user_choice(char *prompt, char *choices) {
 int get_numeric_input() {
 
     int num;
+    long cand;
     char *input = NULL;
     size_t len = 0;
     int good_input = FALSE;
@@ -676,16 +662,28 @@ int get_numeric_input() {
         printf("Enter a PID: ");
         nread = getline(&input, &len, stdin);
 
-        // if user entered more than '\n', and input is a number
+        // verify that user entered more than '\n', and input is a pos. number within INT_MAX
         if(nread > 1 && is_number(trim(input))){
-            good_input = TRUE;
+            
+            errno = 0;  // reset and previous ERANGE errors
+
+            // convert to long int, compare with int limits:
+            cand = strtol(input, NULL, 10);
+
+            if(cand > INT_MAX || errno == ERANGE){
+                printf("PID out of range. Try again.\n");
+            }
+            else {
+                good_input = TRUE;
+            }
+
         } 
         else {
             printf("PID must be a number. Try again.\n");
         }
     }
 
-    num = atoi(input);
+    num = (int) cand;   // don't necessarily need to cast, but good to be explicit
 
     free(input);
     return num;
@@ -710,7 +708,8 @@ unsigned long long get_hex_input() {
 
         // if user entered more than '\n', and input is a number
         if(nread > 1 && is_hex(trim(input))){
-
+            
+            errno = 0;  // reset and previous ERANGE errors
             hex = strtoull(input, NULL, 16);    //convert to unsigned long long
 
             // if conversion fails (too big), inform user
