@@ -1,7 +1,7 @@
 ########
 # Colin Powell
-# 
-#  Process Analyzer
+# CS373: Defense Against the Dark Arts
+# HW5: Process Analyzer
 #######
 
 # set compiler, flags

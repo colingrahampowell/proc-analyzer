@@ -9,6 +9,7 @@
 #define _GNU_SOURCE             //enable process_vm_readv
 #define _LARGEFILE64_SOURCE     //enable 64-bit seeking for pagemap
 
+#include <pthread.h>
 #include <inttypes.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -34,14 +35,14 @@
 typedef struct {
     char name[MAX_NAME];
     char cmdline[MAX_NAME];
-    int pid;
+    pid_t pid;
 } p_info;
 
 
 typedef struct {
     char name[MAX_NAME]; 
-    int tgid;
-    int tid;
+    pthread_t tgid;
+    pthread_t tid;
 } t_info;
 
 typedef struct {
@@ -209,7 +210,7 @@ int list_threads(int pid) {
 
             ti.tid = atoi(entry->d_name);
             success = read_thread_info(tmp, &ti);
-            printf("%-8d%-8d%-64s\n", ti.tid, ti.tgid, ti.name);
+            printf("%-8lu%-8lu%-64s\n", ti.tid, ti.tgid, ti.name);
         }
     }
 

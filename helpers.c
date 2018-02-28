@@ -1,8 +1,7 @@
 /*
  * Colin Powell
- * 
- *  Process Analyzer
- * Helper functions
+ * Process Analyzer
+ * Helper Functions - Implementation File
  */
 
 #include "helpers.h"
